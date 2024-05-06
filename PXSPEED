@@ -1,0 +1,37 @@
+local speed = 16 -- Default speed
+local scrollingEnabled = true
+
+local function setFOV(fov)
+    game:GetService("Workspace").CurrentCamera.FieldOfView = fov
+end
+
+local function smoothTransition(start, finish, duration)
+    local startTime = os.clock()
+    while os.clock() - startTime < duration do
+        local elapsedTime = os.clock() - startTime
+        local t = elapsedTime / duration
+        setFOV(start + (finish - start) * t)
+        wait()
+    end
+    setFOV(finish) -- Ensure the final FOV matches the finish value exactly
+    scrollingEnabled = true -- Re-enable scrolling after the transformation
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if scrollingEnabled then
+        if input.KeyCode == Enum.KeyCode.LeftControl then
+            scrollingEnabled = false -- Disable scrolling during the transformation
+            if speed == 16 then
+                speed = 2600 -- Set speed to 2600
+                game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = speed -- Apply the new speed
+                smoothTransition(70, 100, 3) -- Smoothly increase FOV to 100 over 3 seconds
+            else
+                speed = 16 -- Set speed back to default
+                game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = speed -- Apply the default speed
+                smoothTransition(100, 70, 3) -- Smoothly decrease FOV to default (assuming 70 is the default FOV) over 3 seconds
+            end
+        elseif input.KeyCode == Enum.KeyCode.R then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId) -- Rejoin the game
+        end
+    end
+end)
